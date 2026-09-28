@@ -1,29 +1,14 @@
-#include <iostream>
-#include <limits>
 #include <stdio.h>
 #include <string>
+#include <unistd.h>
 
+#include "Cli_Helpers.h"
+#include "Cli_Main.h"
 #include "Codes.h"
 #include "Task.h"
 #include "TaskManager.h"
 
-const int SEPARATOR_LEN = 100;
-
-std::string ReadString(int maxLen);
-void Prompt(const char *line);
-void Inform(const char *line);
-void ClearScreen();
-
-void PrintActions();
-void PrintTaskList();
-int GetAction(int min, int max);
-int ManageActionInput(int action);
-
-int CliSelectTask();
-int CliCreateTask();
-int CliRemoveTask();
-void CliCheckTask();
-void CliUncheckTask();
+using namespace Cli;
 
 // TODO : Create standard input reading
 // TODO : Create standard output
@@ -49,48 +34,8 @@ int main() {
   return 0;
 }
 
-std::string ReadString(int maxLen) {
-  std::string res;
-  std::getline(std::cin, res);
-
-  if (maxLen > 0 && res.length() > static_cast<size_t>(maxLen))
-    res.resize(maxLen);
-  return res;
-};
-
-int ReadInt() {
-  int res = 0;
-  if (!(std::cin >> res))
-    std::cin.clear();
-
-  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  return res;
-}
-
-void Prompt(const char *line = "") {
-  printf("%s > ", line);
-  fflush(stdout);
-}
-
-void Print(PRINT_CODES code, const char *line = "") {
-  if (code == INFO)
-    printf("<< %s >>\n", line);
-  else if (code == WARNING)
-    printf("_<! %s !>_\n", line);
-  else if (code == ERROR) {
-    std::string separator = std::string(SEPARATOR_LEN, '=');
-    printf("%s\n-%s-\n%s\n", separator.c_str(), line, separator.c_str());
-  }
-}
-
-void ClearScreen() {
-  printf("\033[2J"); // clear
-  printf("\033F");   // move to bottomleft
-  fflush(stdout);
-}
-
 void PrintActions() {
-  printf("\n- Available Actions:\n"
+  printf("- Available Actions:\n"
          "1. Create Task;\n"
          "2. Remove Task;\n"
          "3. Check Task;\n"
@@ -101,7 +46,10 @@ void PrintActions() {
 }
 
 void PrintTaskList() {
-  printf("// Task List --\n");
+  if (TaskManager::taskList.size() < 1)
+    return;
+
+  Print(INFO, "Task List");
   int i = 1;
   for (auto &task : TaskManager::taskList) {
     std::string index = (i < 10 ? "0" : "") + std::to_string(i);
@@ -119,8 +67,7 @@ void PrintTaskList() {
     i++;
   }
 
-  printf(R"(-- Task List \\)"
-         "\n");
+  Print(INFO, "Task List");
 }
 
 int GetAction(int min, int max) {
@@ -132,8 +79,10 @@ int GetAction(int min, int max) {
 }
 
 int ManageActionInput(int action) {
+  int result;
+
   if (action == -1) {
-    printf("-! Action out of bounds !-\n");
+    Print(ERROR, "Action out of bounds");
     return INDEX_OUT_OF_RANGE;
   }
 
@@ -141,25 +90,43 @@ int ManageActionInput(int action) {
 
   switch (action) {
   case 1:
-    if (CliCreateTask() == TASK_ADDED_SUCCESSFULLY)
+    Print(INFO, "Task Creation");
+    result = CliCreateTask();
+    ClearScreen();
+    if (result == TASK_ADDED_SUCCESSFULLY)
       Print(INFO, "task creation was SUCCESSFUL");
     else
       Print(WARNING, "task creation was UNSUCCESSFUL");
     break;
 
   case 2:
-    if (CliRemoveTask() == TASK_REMOVED_SUCCESSFULLY)
+    Print(INFO, "Task Deletion");
+    result = CliRemoveTask();
+    ClearScreen();
+    if (result == TASK_REMOVED_SUCCESSFULLY)
       Print(INFO, "task deletion was SUCCESSFUL");
     else
       Print(WARNING, "task deletion was UNSUCCESSFUL");
     break;
 
   case 3:
-    CliCheckTask();
+    Print(INFO, "Task Checking");
+    result = CliCheckTask();
+    ClearScreen();
+    if (result == TASK_CHECKED_SUCCESSFULLY)
+      Print(INFO, "task checking was SUCCESSFUL");
+    else
+      Print(WARNING, "task checking was UNSUCCESSFUL");
     break;
 
   case 4:
-    CliUncheckTask();
+    Print(INFO, "Task Unchecking");
+    result = CliUncheckTask();
+    ClearScreen();
+    if (result == TASK_UNCHECKED_SUCCESSFULLY)
+      Print(INFO, "task unchecking was SUCCESSFUL");
+    else
+      Print(WARNING, "task unchecking was UNSUCCESSFUL");
     break;
 
   case 5:
@@ -171,6 +138,7 @@ int ManageActionInput(int action) {
     return -1;
   }
 
+  usleep(500000);
   Prompt("Enter to Continue");
   ReadString(1);
   ClearScreen();
@@ -188,8 +156,6 @@ int CliSelectTask() {
 int CliCreateTask() {
   std::string title, notes, date;
 
-  printf("-Task Creation-\n");
-
   Prompt("Enter Task Title");
   title = ReadString(30);
 
@@ -204,12 +170,16 @@ int CliCreateTask() {
 }
 
 int CliRemoveTask() {
-  printf("-Task Deletion-\n");
-
   int index = CliSelectTask();
   return TaskManager::RemoveTask(index);
 }
 
-void CliCheckTask() {}
+int CliCheckTask() {
+  int index = CliSelectTask();
+  return TaskManager::CheckTask(index);
+}
 
-void CliUncheckTask() {}
+int CliUncheckTask() {
+  int index = CliSelectTask();
+  return TaskManager::UncheckTask(index);
+}

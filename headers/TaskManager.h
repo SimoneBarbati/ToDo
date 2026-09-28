@@ -1,3 +1,6 @@
+#ifndef TASK_MANAGER_H
+#define TASK_MANAGER_H
+
 #include <vector>
 
 #include "Task.h"
@@ -15,3 +18,5 @@ public:
   static int CheckTask(int taskIndex);
   static int UncheckTask(int taskIndex);
 };
+
+#endif
