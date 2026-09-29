@@ -59,9 +59,10 @@ void PrintTaskList() {
     printf("Title: %s\n"
            "Group: %s\n"
            "Notes: %s\n"
+           "Due Date: %s\n"
            "Status: %i\n",
            task.title.c_str(), task.group.c_str(), task.notes.c_str(),
-           task.status);
+           task.date.c_str(), task.status);
     printf("%s\n", std::string(SEPARATOR_LEN, '-').c_str());
 
     i++;
@@ -154,7 +155,10 @@ int CliSelectTask() {
 }
 
 int CliCreateTask() {
-  std::string title, notes, date;
+  std::string group, title, notes, date;
+
+  Prompt("Enter Task Group");
+  group = ReadString(30);
 
   Prompt("Enter Task Title");
   title = ReadString(30);
@@ -165,7 +169,7 @@ int CliCreateTask() {
   Prompt("Enter Task Due Date (dd/mm/yy)");
   date = ReadString(8);
 
-  Task task = Task(title, "no-group", notes, UNCHECKED);
+  Task task = Task(title, group, notes, date, UNCHECKED);
   return TaskManager::AddTask(&task);
 }
 

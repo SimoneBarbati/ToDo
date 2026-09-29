@@ -10,10 +10,11 @@ public:
   std::string title;
   std::string group;
   std::string notes;
+  std::string date;
   TASK_STATUS status;
 
   Task(std::string title, std::string group, std::string notes,
-       TASK_STATUS status);
+       std::string date, TASK_STATUS status);
 };
 
 #endif
