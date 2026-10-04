@@ -5,6 +5,8 @@
 #include "Cli_Helpers.h"
 #include "Cli_Main.h"
 #include "Codes.h"
+#include "General.h"
+#include "SaveManager.h"
 #include "Task.h"
 #include "TaskManager.h"
 
@@ -16,6 +18,7 @@ using namespace Cli;
 int main() {
   ClearScreen();
   TaskManager::Initialize();
+  SaveManager::Initialize();
 
   int running = 1;
 
@@ -135,6 +138,7 @@ int ManageActionInput(int action) {
     break;
 
   default:
+    QuitApp();
     Print(INFO, "Goodbye!");
     return -1;
   }
